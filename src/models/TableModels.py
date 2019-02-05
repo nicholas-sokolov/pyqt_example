@@ -25,6 +25,12 @@ class SqlResultTableModel(QtCore.QAbstractTableModel):
         self.datatable = rows
         self.endResetModel()
 
+    def clear(self):
+        self.beginResetModel()
+        self.datatable = []
+        self.header = []
+        self.endResetModel()
+
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if not index.isValid():
             return QtCore.QVariant()
@@ -34,5 +40,3 @@ class SqlResultTableModel(QtCore.QAbstractTableModel):
             else:
                 return QtCore.QVariant()
         return QtCore.QVariant()
-
-#
