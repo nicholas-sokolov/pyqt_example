@@ -18,9 +18,6 @@ class Sql:
         self.connect = sqlite3.connect(filename)
         self.cursor = None
 
-    def __del__(self):
-        self._commit()
-
     def create_insert(self, query):
         self.cursor = self.connect.cursor()
         self.cursor.execute(query)
