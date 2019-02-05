@@ -6,6 +6,8 @@ from PyQt5 import QtCore
 from src.signals import signals
 from src.worker import Worker
 
+MEMORY_DB = ':memory:'
+
 
 class Controller:
 
@@ -35,7 +37,7 @@ class Controller:
             signals.show_status.emit(f'Close connect with {database}')
             signals.change_connect_button.emit()
             return
-        if not os.path.exists(database):
+        if not os.path.exists(database) and database != MEMORY_DB:
             signals.error_received.emit(f"No such file '{database}'")
             return
         # try connect
