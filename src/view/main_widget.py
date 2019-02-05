@@ -45,7 +45,8 @@ class MainWidget(QtWidgets.QWidget):
         self.connect_signals()
 
     def connect_signals(self):
-        self.connection_field.textChanged.connect(self.check_connection_button)
+        self.connection_field.textChanged.connect(
+            self.check_connection_button)
         self.query_field.textChanged.connect(self.check_send_button)
         self.connection_button.clicked.connect(self.connect_to_db)
         self.query_button.clicked.connect(self.send_request)
@@ -80,8 +81,11 @@ class MainWidget(QtWidgets.QWidget):
         signals.connect_button.emit(database)
 
     def check_connection(self):
-        self.connection_field.setDisabled(self.connection_button.text() == CONNECT)
-        self.query_field.setDisabled(self.connection_button.text() == DISCONNECT)
+        self.connection_field.setDisabled(
+            self.connection_button.text() == CONNECT)
+        self.query_field.setDisabled(
+            self.connection_button.text() == DISCONNECT)
+
         if self.connection_button.text() == CONNECT:
             self.connection_button.setText(DISCONNECT)
             if self.query_field.text():

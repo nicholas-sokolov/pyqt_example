@@ -50,6 +50,7 @@ class Worker(QtCore.QRunnable):
         except MemoryError:
             signals.error_received.emit('Memory error')
         else:
-            self.signals.result.emit(self.result)  # Return the result of the processing
+            # Return the result of the processing
+            self.signals.result.emit(self.result)
         finally:
             self.signals.finished.emit()  # Done
