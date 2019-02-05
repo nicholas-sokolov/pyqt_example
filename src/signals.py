@@ -4,10 +4,10 @@ from PyQt5 import QtCore
 class Signals(QtCore.QObject):
     show_status = QtCore.pyqtSignal(str)
 
-    set_connection = QtCore.pyqtSignal(str)
-    connection_button_trigger = QtCore.pyqtSignal()
+    connect_button = QtCore.pyqtSignal(str)
+    change_connect_button = QtCore.pyqtSignal()
     close_connection = QtCore.pyqtSignal()
-    make_query = QtCore.pyqtSignal(str, str)
+    sql_sender = QtCore.pyqtSignal(str)
 
     error_received = QtCore.pyqtSignal(str)
 

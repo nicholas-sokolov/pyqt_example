@@ -1,52 +1,54 @@
+import sqlite3
+
 from src.signals import signals
-from src.sql import Sql
 
 
 class Controller:
 
     def __init__(self):
-        self.sql_connect = None
+        self.connect = None
+        self.cursor = None
         self.connect_signals()
 
+    def disconnect(self):
+        if self.connect:
+            self.connect.close()
+        self.connect = None
+        self.cursor = None
+
     def connect_signals(self):
-        signals.make_query.connect(self.make_query)
-        signals.set_connection.connect(self.set_connect)
+        signals.sql_sender.connect(self.sql_listener)
+        signals.connect_button.connect(self.connect_process)
 
-    def set_connect(self, database):
+    def connect_process(self, database):
         if not database:
-            signals.show_status.emit(f'No such database')
+            signals.show_status.emit(f'Input path to database. Please')
             return
-
-        if self.sql_connect:
-            self.sql_connect.close()
-            signals.connection_button_trigger.emit()
+        if self.connect:
+            self.disconnect()
             signals.show_status.emit(f'Close connect with {database}')
-            self.sql_connect = None
+            signals.change_connect_button.emit()
             return
-
+        # try connect
         try:
-            sql = Sql(database)
-            self.sql_connect = sql.connect
+            self.connect = sqlite3.connect(database, isolation_level=None)
+            self.cursor = self.connect.cursor()
             signals.show_status.emit(f'Connect to {database}')
-            signals.connection_button_trigger.emit()
+            signals.change_connect_button.emit()
         except Exception as err:
             signals.error_received.emit(f'{err}')
 
-    def make_query(self, connection, query):
+    def sql_listener(self, query):
         """
-
-        :param str connection:
         :param str query:
-        :return:
         """
-        self.sql = Sql(connection)
         try:
-            if query.lower().startswith('select'):
-                header, result = self.sql.select(query)
-                signals.draw_table.emit(header, result)
-            elif query.lower().startswith('create') or query.lower().startswith('insert'):
-                self.sql.create_insert(query)
-            else:
-                signals.error_received('Unknown query')
+            response = self.cursor.execute(query)
+            signals.show_status.emit(f'Done: {query}')
+            results = response.fetchall()
+
+            if results:
+                headers = [item[0] for item in self.cursor.description]
+                signals.draw_table.emit(headers, results)
         except Exception as err:
-            signals.error_received.emit(f'{err}')
+            signals.error_received.emit(f'Invalid query to DB: {err}')
