@@ -8,6 +8,7 @@ def singleton(cls):
         if cls not in instances:
             instances[cls] = cls(*args, **kwargs)
         return instances[cls]
+
     return getinstance
 
 
@@ -28,4 +29,3 @@ class Sql:
         self.cursor.execute(query)
         headers = [item[0] for item in self.cursor.description]
         return headers, self.cursor.fetchall()
-

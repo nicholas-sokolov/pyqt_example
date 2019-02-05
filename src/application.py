@@ -1,7 +1,7 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 
-from src.models.TableModels import SqlResultTableModel
 from src.controller import Controller
+from src.models.TableModels import SqlResultTableModel
 from src.signals import signals
 
 
@@ -83,5 +83,3 @@ class MainWidget(QtWidgets.QWidget):
 
     def clear_widgets(self):
         self.query_field.clear()
-
-
