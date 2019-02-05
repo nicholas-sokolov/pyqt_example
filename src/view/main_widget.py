@@ -95,6 +95,7 @@ class MainWidget(QtWidgets.QWidget):
         if not query:
             signals.error_received.emit('No query')
             return
+        self.result_table_model.clear()
         signals.sql_sender.emit(query)
 
     def clear_widgets(self):

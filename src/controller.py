@@ -12,6 +12,7 @@ class Controller:
     def __init__(self):
         self.connect = None
         self.cursor = None
+        self.query = None
         self.thread_pool = QtCore.QThreadPool()
         self.connect_signals()
 
@@ -51,18 +52,20 @@ class Controller:
         """
         :param str query:
         """
-        signals.show_status.emit(f'Processing.... {query}')
+        self.query = query.strip()
+        signals.show_status.emit(f'Processing.... {self.query}')
         try:
-            response = self.cursor.execute(query)
+            response = self.cursor.execute(self.query)
             worker = Worker(response.fetchall)
             worker.signals.result.connect(self.received_sql_data)
             worker.signals.finished.connect(self.request_done)
             self.thread_pool.start(worker)
         except Exception as err:
             signals.error_received.emit(f'Error: {err}')
+            self.request_done()
 
     def request_done(self):
-        signals.show_status.emit('Done')
+        signals.show_status.emit(f'Done: {self.query}')
 
     def received_sql_data(self, data):
         if data:

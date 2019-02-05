@@ -1,7 +1,8 @@
-import sys
-import traceback
+import sqlite3
 
 from PyQt5 import QtCore
+
+from src.signals import signals
 
 
 class WorkerSignals(QtCore.QObject):
@@ -11,18 +12,12 @@ class WorkerSignals(QtCore.QObject):
                     Supported signals are:
     finished
         No data
-    error
-        `tuple` (exctype, value, traceback.format_exc() )
     result
         `object` data returned from processing, anything
-    progress
-        `int` indicating % progress
 
     """
     finished = QtCore.pyqtSignal()
-    error = QtCore.pyqtSignal(tuple)
     result = QtCore.pyqtSignal(object)
-    progress = QtCore.pyqtSignal(int)
 
 
 class Worker(QtCore.QRunnable):
@@ -50,10 +45,10 @@ class Worker(QtCore.QRunnable):
         # Retrieve args/kwargs here; and fire processing using them
         try:
             self.result = self.func(*self.args, **self.kwargs)
-        except:
-            traceback.print_exc()
-            exctype, value = sys.exc_info()[:2]
-            self.signals.error.emit((exctype, value, traceback.format_exc()))
+        except sqlite3.OperationalError as err:
+            signals.error_received.emit(err)
+        except MemoryError:
+            signals.error_received.emit('Memory error')
         else:
             self.signals.result.emit(self.result)  # Return the result of the processing
         finally:
