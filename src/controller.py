@@ -1,3 +1,4 @@
+import os
 import sqlite3
 
 from src.signals import signals
@@ -28,6 +29,9 @@ class Controller:
             self.disconnect()
             signals.show_status.emit(f'Close connect with {database}')
             signals.change_connect_button.emit()
+            return
+        if not os.path.exists(database):
+            signals.error_received.emit(f"No such file '{database}'")
             return
         # try connect
         try:
