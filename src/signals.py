@@ -13,5 +13,8 @@ class Signals(QtCore.QObject):
 
     draw_table = QtCore.pyqtSignal(list, list)
 
+    result = QtCore.pyqtSignal(object)
+    finished = QtCore.pyqtSignal()
+
 
 signals = Signals()

@@ -1,7 +1,10 @@
 import os
 import sqlite3
 
+from PyQt5 import QtCore
+
 from src.signals import signals
+from src.worker import Worker
 
 
 class Controller:
@@ -9,6 +12,7 @@ class Controller:
     def __init__(self):
         self.connect = None
         self.cursor = None
+        self.thread_pool = QtCore.QThreadPool()
         self.connect_signals()
 
     def disconnect(self):
@@ -35,7 +39,8 @@ class Controller:
             return
         # try connect
         try:
-            self.connect = sqlite3.connect(database, isolation_level=None)
+            self.connect = sqlite3.connect(database, isolation_level=None,
+                                           check_same_thread=False)
             self.cursor = self.connect.cursor()
             signals.show_status.emit(f'Connect to {database}')
             signals.change_connect_button.emit()
@@ -46,13 +51,20 @@ class Controller:
         """
         :param str query:
         """
+        signals.show_status.emit(f'Processing.... {query}')
         try:
             response = self.cursor.execute(query)
-            signals.show_status.emit(f'Done: {query}')
-            results = response.fetchall()
-
-            if results:
-                headers = [item[0] for item in self.cursor.description]
-                signals.draw_table.emit(headers, results)
+            worker = Worker(response.fetchall)
+            worker.signals.result.connect(self.received_sql_data)
+            worker.signals.finished.connect(self.request_done)
+            self.thread_pool.start(worker)
         except Exception as err:
-            signals.error_received.emit(f'Invalid query to DB: {err}')
+            signals.error_received.emit(f'Error: {err}')
+
+    def request_done(self):
+        signals.show_status.emit('Done')
+
+    def received_sql_data(self, data):
+        if data:
+            headers = [item[0] for item in self.cursor.description]
+            signals.draw_table.emit(headers, data)

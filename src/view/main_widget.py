@@ -55,7 +55,6 @@ class MainWidget(QtWidgets.QWidget):
     def check_connection_button(self):
         if not self.connection_field.text():
             self.connection_button.setDisabled(True)
-            self.query_button.setDisabled(True)
         else:
             self.connection_button.setDisabled(False)
 
@@ -85,7 +84,10 @@ class MainWidget(QtWidgets.QWidget):
         self.query_field.setDisabled(self.connection_button.text() == DISCONNECT)
         if self.connection_button.text() == CONNECT:
             self.connection_button.setText(DISCONNECT)
+            if self.query_field.text():
+                self.query_button.setDisabled(False)
         else:
+            self.query_button.setDisabled(True)
             self.connection_button.setText(CONNECT)
 
     def send_request(self):
