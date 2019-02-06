@@ -18,6 +18,8 @@ class SqlResultTableModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant()
         elif Qt_Orientation == QtCore.Qt.Horizontal:
             return QtCore.QVariant(self.header[p_int])
+        elif Qt_Orientation == QtCore.Qt.Vertical:
+            return QtCore.QVariant(p_int+1)
         return QtCore.QVariant()
 
     def insertRows(self, rows, parent=None, *args, **kwargs):
