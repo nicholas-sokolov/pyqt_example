@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 
 from src.signals import signals
 from src.worker import QueryThread
@@ -16,6 +16,8 @@ class Controller:
         self.connect = None
         self.cursor = None
         self.query = None
+        self._last_query = ''
+        self.yes_no_msg = QtWidgets.QMessageBox()
         self.connect_signals()
 
     def disconnect(self):
@@ -54,11 +56,17 @@ class Controller:
         except Exception as err:
             signals.error_received.emit(f'{err}')
 
-    def sql_listener(self, query):
+    def sql_listener(self, query, check_query=True):
         """
         :param str query:
+        :param bool check_query:
         """
         self.query = query.strip()
+        if check_query and self._last_query.lower() == self.query.lower():
+            message = 'Your last query was the same. ' \
+                      'Do you want to make this query again?'
+            signals.show_yes_no_dialog.emit(message, self.query)
+            return
         signals.show_status.emit(f'Processing.... {self.query}')
         try:
             response = self.cursor.execute(self.query)
@@ -78,5 +86,6 @@ class Controller:
             self.request_done()
 
     def request_done(self):
+        self._last_query = self.query
         signals.sql_query_done.emit()
         signals.show_status.emit(f'Done: {self.query}')

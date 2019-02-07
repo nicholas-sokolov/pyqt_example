@@ -13,8 +13,7 @@ class MainWidget(QtWidgets.QWidget):
 
         connection = QtWidgets.QLabel('Sql connection:')
         self.connection_field = QtWidgets.QLineEdit()
-        # self.connection_field.setText(':memory:')
-        self.connection_field.setText('Northwind_small.sqlite')
+        self.connection_field.setText(':memory:')
         self.connection_button = QtWidgets.QPushButton(CONNECT)
         self.connection_button.setDisabled(False)
 
@@ -117,7 +116,7 @@ class MainWidget(QtWidgets.QWidget):
             return
         self.query_button.setDisabled(True)
         self.result_table_model.clear()
-        signals.sql_sender.emit(query)
+        signals.sql_sender.emit(query, True)
 
     def clear_widgets(self):
         self.query_field.clear()
