@@ -29,8 +29,10 @@ class Controller:
         signals.connect_button.connect(self.connect_process)
 
     def connect_process(self, database):
-        if not database:
-            signals.show_status.emit(f'Input path to database. Please')
+        if not database or \
+                not os.path.isfile(database) and database != MEMORY_DB:
+            signals.show_status.emit(
+                f'Unsupported. Input correct path to database. Please')
             return
         if self.connect:
             self.disconnect()
