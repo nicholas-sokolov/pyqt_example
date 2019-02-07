@@ -4,7 +4,7 @@ import sqlite3
 from PyQt5 import QtCore
 
 from src.signals import signals
-from src.worker import Worker
+from src.worker import QueryThread
 
 MEMORY_DB = ':memory:'
 
@@ -12,13 +12,15 @@ MEMORY_DB = ':memory:'
 class Controller:
 
     def __init__(self):
+        self.query_processing = None
         self.connect = None
         self.cursor = None
         self.query = None
-        self.thread_pool = QtCore.QThreadPool()
         self.connect_signals()
 
     def disconnect(self):
+        if self.query_processing:
+            self.query_processing.terminate()
         if self.connect:
             self.connect.close()
         self.connect = None
@@ -60,18 +62,21 @@ class Controller:
         signals.show_status.emit(f'Processing.... {self.query}')
         try:
             response = self.cursor.execute(self.query)
-            worker = Worker(response.fetchall)
-            worker.signals.result.connect(self.received_sql_data)
-            worker.signals.finished.connect(self.request_done)
-            self.thread_pool.start(worker)
+            if self.cursor.description:
+                headers = [item[0] for item in self.cursor.description]
+                # Send headers
+                signals.headers_received.emit(headers)
+
+            self.query_processing = QueryThread(response)
+
+            local_object = QtCore.QObject()
+            local_object.moveToThread(self.query_processing)
+            self.query_processing.finished.connect(self.request_done)
+            self.query_processing.start()
         except Exception as err:
             signals.error_received.emit(f'Error: {err}')
             self.request_done()
 
     def request_done(self):
+        signals.sql_query_done.emit()
         signals.show_status.emit(f'Done: {self.query}')
-
-    def received_sql_data(self, data):
-        if data:
-            headers = [item[0] for item in self.cursor.description]
-            signals.draw_table.emit(headers, data)

@@ -2,19 +2,17 @@ from PyQt5 import QtCore
 
 
 class Signals(QtCore.QObject):
+    # Service
     show_status = QtCore.pyqtSignal(str)
-
+    error_received = QtCore.pyqtSignal(str)
     connect_button = QtCore.pyqtSignal(str)
     change_connect_button = QtCore.pyqtSignal()
-    close_connection = QtCore.pyqtSignal()
+
+    # DB signals
     sql_sender = QtCore.pyqtSignal(str)
-
-    error_received = QtCore.pyqtSignal(str)
-
-    draw_table = QtCore.pyqtSignal(list, list)
-
-    result = QtCore.pyqtSignal(object)
-    finished = QtCore.pyqtSignal()
+    db_rows_received = QtCore.pyqtSignal(list)
+    headers_received = QtCore.pyqtSignal(list)
+    sql_query_done = QtCore.pyqtSignal()
 
 
 signals = Signals()

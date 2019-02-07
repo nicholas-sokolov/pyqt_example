@@ -13,7 +13,8 @@ class MainWidget(QtWidgets.QWidget):
 
         connection = QtWidgets.QLabel('Sql connection:')
         self.connection_field = QtWidgets.QLineEdit()
-        self.connection_field.setText(':memory:')
+        # self.connection_field.setText(':memory:')
+        self.connection_field.setText('Northwind_small.sqlite')
         self.connection_button = QtWidgets.QPushButton(CONNECT)
         self.connection_button.setDisabled(False)
 
@@ -27,6 +28,10 @@ class MainWidget(QtWidgets.QWidget):
         self.result_table = QtWidgets.QTableView(self)
         self.result_table_model = SqlResultTableModel(self)
         self.result_table.setModel(self.result_table_model)
+
+        self.buttons_list = [
+            self.query_button, self.connection_button,
+        ]
 
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
@@ -50,8 +55,13 @@ class MainWidget(QtWidgets.QWidget):
         self.query_field.textChanged.connect(self.check_send_button)
         self.connection_button.clicked.connect(self.connect_to_db)
         self.query_button.clicked.connect(self.send_request)
-        signals.draw_table.connect(self.fill_data_table)
+        signals.headers_received.connect(self.set_header_table)
+        signals.db_rows_received.connect(self.fill_data_table)
         signals.change_connect_button.connect(self.check_connection)
+        signals.sql_query_done.connect(self.finish)
+
+    def finish(self):
+        self.query_button.setDisabled(False)
 
     def check_connection_button(self):
         if not self.connection_field.text():
@@ -65,16 +75,22 @@ class MainWidget(QtWidgets.QWidget):
         else:
             self.query_button.setDisabled(False)
 
-    def fill_data_table(self, header, data):
-        """ Fill header and cells
-
+    def set_header_table(self, header):
+        """
         :param list header: Columns
+        :return:
+        """
+        if self.result_table_model.header != header:
+            self.result_table_model.header = header
+
+    def fill_data_table(self, data):
+        """
         :param list data: Received data
         """
-        if not data:
+        if not data and \
+                self.query_field.text().lower().strip().startswith('select'):
             signals.error_received.emit('No data to show')
-        self.result_table_model.header = header
-        self.result_table_model.insertRows(data)
+        self.result_table_model.add_results(data)
 
     def connect_to_db(self):
         database = self.connection_field.text()
@@ -99,6 +115,7 @@ class MainWidget(QtWidgets.QWidget):
         if not query:
             signals.error_received.emit('No query')
             return
+        self.query_button.setDisabled(True)
         self.result_table_model.clear()
         signals.sql_sender.emit(query)
 
